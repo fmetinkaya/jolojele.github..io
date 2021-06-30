@@ -5,7 +5,7 @@
 var connection = new RTCMultiConnection();
 
 // this line is VERY_important
-/*connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
+connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
 
 // if you want audio+video conferencing
 connection.session = {
@@ -13,7 +13,7 @@ connection.session = {
     video: true
 };
 
-connection.openOrJoin('your-room-id');*/
+connection.openOrJoin('your-room-id');
 connection.DetectRTC.load(function() {
     // you can access all microphones using "DetectRTC.audioInputDevices"
     connection.DetectRTC.audioInputDevices.forEach(function(device) {
