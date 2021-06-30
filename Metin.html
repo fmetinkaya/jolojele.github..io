@@ -1,0 +1,28 @@
+<script src="https://rtcmulticonnection.herokuapp.com/dist/RTCMultiConnection.min.js"></script>
+<script src="https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"></script>
+
+<script>
+var connection = new RTCMultiConnection();
+
+// this line is VERY_important
+/*connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
+
+// if you want audio+video conferencing
+connection.session = {
+    audio: true,
+    video: true
+};
+
+connection.openOrJoin('your-room-id');*/
+connection.DetectRTC.load(function() {
+    // you can access all microphones using "DetectRTC.audioInputDevices"
+    connection.DetectRTC.audioInputDevices.forEach(function(device) {
+       console.log(device);
+    });
+
+    // you can access all cameras using "DetectRTC.videoInputDevices"
+    connection.DetectRTC.videoInputDevices.forEach(function(device) {
+        console.log(device);
+    });
+});
+</script>
