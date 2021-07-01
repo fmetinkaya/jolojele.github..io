@@ -1,28 +1,140 @@
-<script src="https://rtcmulticonnection.herokuapp.com/dist/RTCMultiConnection.min.js"></script>
-<script src="https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"></script>
+<html>
 
-<script>
-var connection = new RTCMultiConnection();
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://rtcmulticonnection.herokuapp.com/dist/RTCMultiConnection.min.js"></script>
+    <script src="https://rtcmulticonnection.herokuapp.com/socket.io/socket.io.js"></script>
 
-// this line is VERY_important
-connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-// if you want audio+video conferencing
-connection.session = {
-    audio: true,
-    video: true
-};
+        .localVideo {
+            width: 20%;
+            height: fit-content;
+            border: 5px outset red;
+            background-color: lightblue;
+            position: absolute;
+            z-index: 1;
+            left: 0;
+            bottom: 0;
+        }
 
-connection.openOrJoin('your-room-id');
-connection.DetectRTC.load(function() {
-    // you can access all microphones using "DetectRTC.audioInputDevices"
-    connection.DetectRTC.audioInputDevices.forEach(function(device) {
-       console.log(device);
-    });
+        .remoteVideos {
+            width: 100%;
+            height: 100%;
+            border: 5px outset yellow;
+            background-color: gray;
+            position: absolute;
+            z-index: 0;
+        }
+    </style>
+</head>
 
-    // you can access all cameras using "DetectRTC.videoInputDevices"
-    connection.DetectRTC.videoInputDevices.forEach(function(device) {
-        console.log(device);
-    });
-});
-</script>
+<body>
+
+    <div class="ui-widget-content localVideo" id="localVideo">
+
+    </div>
+    <div class="remoteVideos" ondblclick="nextCamera()" id="remoteVideos">
+
+    </div>
+
+
+    <script>
+        var participants = [];
+
+        function nextCamera() {
+            alert("I am an alert box!");
+        }
+
+        $(function () {
+            $("#localVideo").draggable({ containment: "window" });
+        });
+        var connection = new RTCMultiConnection();
+
+        // this line is VERY_important
+        connection.socketURL = 'https://rtcmulticonnection.herokuapp.com:443/';
+
+        // if you want audio+video conferencing
+        connection.session = {
+            audio: true,
+            video: true
+        };
+
+        connection.onstream = function (event) {
+            console.log("yayın başladığında buraya giriyor");
+            console.log("deneme " + JSON.stringify(event));
+            console.log("deneme " + JSON.stringify(event.streamid));
+            console.log("deneme " + JSON.stringify(event.type));
+
+            var video = event.mediaElement;
+            video.id = event.streamid;
+            video.controls = false;
+
+            if (event.type == "remote") {
+                video.style.height = "100%";
+                video.style.width = "100%";
+                document.getElementById("remoteVideos").appendChild(video);
+
+                addParticipant(event.streamid);
+            }
+            if (event.type == "local") {
+                video.style.width = "100%";
+                document.getElementById("localVideo").appendChild(video);
+            }
+        };
+
+        connection.onstreamended = function (event) {
+            console.log("yayın bittiğinde buraya giriyor");
+            var video = document.getElementById(event.streamid);
+            if (video && video.parentNode) {
+                video.parentNode.removeChild(video);
+            }
+
+            removeParticipant(event.streamid);
+        };
+
+        connection.openOrJoin('159753456');
+
+        function addParticipant(participantId) {
+            console.log("boyut " + participants.length + " " + participantId);
+            if (participants.length > 0) {
+                participants.push({ participantId: participantId, hidden: true });
+                document.getElementById(participantId).style.display = "none";
+            }
+            else {
+                participants.push({ participantId: participantId, hidden: false });
+                document.getElementById(participantId).hidden = false;
+            }
+        }
+        function removeParticipant(participantId) {
+            participants = participants.filter(participant => participant.participantId != participantId);
+            console.log("boyut " + participants);
+        }
+        function nextCamera() {
+            if (participants.length > 1) {
+                let activeCameraIndex = participants.findIndex(participant => participant.hidden == false);
+                let nextCameraIndex = activeCameraIndex + 1;
+                let activeCamera = participants[activeCameraIndex];
+                document.getElementById(activeCamera.participantId).style.display = "none";
+                activeCamera.hidden = true;
+
+                if (nextCameraIndex >= participants.length) {
+                    nextCameraIndex = 0;
+                }
+                let nextActiveCamera = participants[nextCameraIndex];
+                document.getElementById(nextActiveCamera.participantId).style.display = "";
+                nextActiveCamera.hidden = false;
+
+
+            }
+        }
+
+    </script>
